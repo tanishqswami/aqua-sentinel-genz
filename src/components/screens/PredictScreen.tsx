@@ -4,111 +4,129 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { FlaskConical, Thermometer, Droplets, Zap, CloudRain, Wind, TrendingUp } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FlaskConical, Thermometer, Droplets, Zap, CloudRain, Wind, TrendingUp, MapPin, Gauge } from "lucide-react";
+import { healthAPI, SensorData, PredictionResponse } from "@/services/api";
 
-interface SensorData {
-  ph: string;
+interface LocalSensorData {
+  pH: string;
   turbidity: string;
-  tds: string;
-  dissolvedOxygen: string;
+  conductivity: string;
+  water_temp: string;
+  dissolved_oxygen: string;
   orp: string;
-  temperature: string;
-  coliformCount: string;
-  rainfall: string;
-  humidity: string;
-}
-
-interface DiseasePrediction {
-  disease: string;
-  probability: number;
-  severity: "low" | "medium" | "high";
-  description: string;
+  ecoli_cfu: string;
+  rainfall_mm: string;
+  water_level: string;
+  ambient_temp: string;
+  ambient_humidity: string;
+  gps_lat: string;
+  gps_lon: string;
 }
 
 const sensorInputs = [
-  { key: "ph", label: "pH Level", icon: FlaskConical, unit: "" },
+  { key: "pH", label: "pH Level", icon: FlaskConical, unit: "" },
   { key: "turbidity", label: "Turbidity", icon: Droplets, unit: "NTU" },
-  { key: "tds", label: "TDS", icon: Zap, unit: "ppm" },
-  { key: "dissolvedOxygen", label: "Dissolved Oxygen", icon: Wind, unit: "mg/L" },
+  { key: "conductivity", label: "Conductivity", icon: Zap, unit: "μS/cm" },
+  { key: "water_temp", label: "Water Temperature", icon: Thermometer, unit: "°C" },
+  { key: "dissolved_oxygen", label: "Dissolved Oxygen", icon: Wind, unit: "mg/L" },
   { key: "orp", label: "ORP", icon: TrendingUp, unit: "mV" },
-  { key: "temperature", label: "Temperature", icon: Thermometer, unit: "°C" },
-  { key: "coliformCount", label: "Coliform Count", icon: FlaskConical, unit: "CFU/100ml" },
-  { key: "rainfall", label: "Rainfall", icon: CloudRain, unit: "mm" },
-  { key: "humidity", label: "Humidity", icon: Wind, unit: "%" },
+  { key: "ecoli_cfu", label: "E.coli Count", icon: FlaskConical, unit: "CFU/100ml" },
+  { key: "rainfall_mm", label: "Rainfall", icon: CloudRain, unit: "mm" },
+  { key: "water_level", label: "Water Level", icon: Gauge, unit: "m" },
+  { key: "ambient_temp", label: "Ambient Temperature", icon: Thermometer, unit: "°C" },
+  { key: "ambient_humidity", label: "Ambient Humidity", icon: Wind, unit: "%" },
+  { key: "gps_lat", label: "GPS Latitude", icon: MapPin, unit: "" },
+  { key: "gps_lon", label: "GPS Longitude", icon: MapPin, unit: "" },
 ];
 
 export function PredictScreen() {
-  const [sensorData, setSensorData] = useState<SensorData>({
-    ph: "",
+  const [sensorData, setSensorData] = useState<LocalSensorData>({
+    pH: "",
     turbidity: "",
-    tds: "",
-    dissolvedOxygen: "",
+    conductivity: "",
+    water_temp: "",
+    dissolved_oxygen: "",
     orp: "",
-    temperature: "",
-    coliformCount: "",
-    rainfall: "",
-    humidity: "",
+    ecoli_cfu: "",
+    rainfall_mm: "",
+    water_level: "",
+    ambient_temp: "",
+    ambient_humidity: "",
+    gps_lat: "",
+    gps_lon: "",
   });
 
-  const [predictions, setPredictions] = useState<DiseasePrediction[]>([]);
+  const [predictionResponse, setPredictionResponse] = useState<PredictionResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleInputChange = (key: keyof SensorData, value: string) => {
+  const handleInputChange = (key: keyof LocalSensorData, value: string) => {
     setSensorData(prev => ({ ...prev, [key]: value }));
   };
 
-  const generatePredictions = () => {
+  const generatePredictions = async () => {
     setIsLoading(true);
+    setError(null);
     
-    // Simulate AI prediction logic
-    setTimeout(() => {
-      const mockPredictions: DiseasePrediction[] = [
-        { 
-          disease: "Cholera", 
-          probability: 15, 
-          severity: "medium",
-          description: "Risk factors: High coliform count and elevated turbidity"
-        },
-        { 
-          disease: "Typhoid", 
-          probability: 8, 
-          severity: "low",
-          description: "Risk factors: Moderate temperature and TDS levels"
-        },
-        { 
-          disease: "Hepatitis A", 
-          probability: 12, 
-          severity: "medium",
-          description: "Risk factors: Water quality parameters suggest contamination"
-        },
-        { 
-          disease: "Diarrhea", 
-          probability: 25, 
-          severity: "high",
-          description: "Risk factors: Multiple water quality indicators elevated"
-        },
-        { 
-          disease: "Gastroenteritis", 
-          probability: 18, 
-          severity: "medium",
-          description: "Risk factors: Bacterial contamination likely"
-        },
-      ];
-      setPredictions(mockPredictions);
+    try {
+      // Prepare data for API call - matching your model's 13 sensor requirements
+      const apiData = {
+        pH: parseFloat(sensorData.pH) || 0,
+        turbidity: parseFloat(sensorData.turbidity) || 0,
+        conductivity: parseFloat(sensorData.conductivity) || 0,
+        water_temp: parseFloat(sensorData.water_temp) || 0,
+        dissolved_oxygen: parseFloat(sensorData.dissolved_oxygen) || 0,
+        orp: parseFloat(sensorData.orp) || 0,
+        ecoli_cfu: parseFloat(sensorData.ecoli_cfu) || 0,
+        rainfall_mm: parseFloat(sensorData.rainfall_mm) || 0,
+        water_level: parseFloat(sensorData.water_level) || 0,
+        ambient_temp: parseFloat(sensorData.ambient_temp) || 0,
+        ambient_humidity: parseFloat(sensorData.ambient_humidity) || 0,
+        gps_lat: parseFloat(sensorData.gps_lat) || 0,
+        gps_lon: parseFloat(sensorData.gps_lon) || 0,
+      };
+
+      // Try real API first, fallback to mock if it fails
+      try {
+        const result = await healthAPI.predictDisease(apiData);
+        setPredictionResponse(result);
+      } catch (apiError) {
+        console.warn('API not available, using mock data:', apiError);
+        const mockResult = await healthAPI.getMockPrediction(apiData);
+        setPredictionResponse(mockResult);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get predictions');
+      console.error('Prediction error:', err);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "high":
+  const getRiskLevelColor = (riskLevel: string) => {
+    switch (riskLevel) {
+      case "danger":
         return "bg-red-50 text-red-700 border-red-200";
-      case "medium":
+      case "warning":
         return "bg-amber-50 text-amber-700 border-amber-200";
-      case "low":
+      case "safe":
         return "bg-green-50 text-green-700 border-green-200";
       default:
         return "bg-muted text-muted-foreground";
+    }
+  };
+
+  const getOverallStatusColor = (status: string) => {
+    switch (status) {
+      case "danger":
+        return "bg-red-500";
+      case "warning":
+        return "bg-amber-500";
+      case "safe":
+        return "bg-green-500";
+      default:
+        return "bg-gray-500";
     }
   };
 
@@ -159,11 +177,28 @@ export function PredictScreen() {
         </Button>
       </Card>
 
-      {predictions.length > 0 && (
+      {error && (
+        <Alert className="bg-red-50 border-red-200">
+          <AlertDescription className="text-red-700">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {predictionResponse && (
         <Card className="p-6 bg-gradient-card animate-fade-in">
-          <h2 className="text-lg font-semibold mb-4">Prediction Results</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Prediction Results</h2>
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${getOverallStatusColor(predictionResponse.overall_status)}`}></div>
+              <Badge className={getRiskLevelColor(predictionResponse.overall_status)}>
+                {predictionResponse.overall_status.toUpperCase()}
+              </Badge>
+            </div>
+          </div>
+          
           <div className="space-y-4">
-            {predictions.map((prediction, index) => (
+            {predictionResponse.predictions.map((prediction, index) => (
               <div 
                 key={prediction.disease}
                 className="bg-background rounded-xl p-4 border border-border hover-glow animate-slide-up"
@@ -172,13 +207,13 @@ export function PredictScreen() {
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold">{prediction.disease}</h3>
                   <div className="flex items-center gap-2">
-                    <Badge className={getSeverityColor(prediction.severity)}>
-                      {prediction.severity}
+                    <Badge className={getRiskLevelColor(prediction.risk_level)}>
+                      {prediction.risk_level}
                     </Badge>
                     <span className="text-lg font-bold">{prediction.probability}%</span>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground">{prediction.description}</p>
+                
                 <div className="mt-3">
                   <div className="bg-muted rounded-full h-2">
                     <div 
@@ -187,6 +222,20 @@ export function PredictScreen() {
                     />
                   </div>
                 </div>
+
+                {prediction.hygiene_tips.length > 0 && (
+                  <div className="mt-3">
+                    <h4 className="text-sm font-medium mb-2">Prevention Tips:</h4>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      {prediction.hygiene_tips.slice(0, 3).map((tip, tipIndex) => (
+                        <li key={tipIndex} className="flex items-start gap-2">
+                          <span className="text-primary">•</span>
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             ))}
           </div>

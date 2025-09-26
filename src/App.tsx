@@ -5,6 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { RoleSelectionScreen } from "./components/screens/RoleSelectionScreen";
+import { VolunteerDashboard } from "./components/screens/VolunteerDashboard";
+import { HealthOfficialDashboard } from "./components/screens/HealthOfficialDashboard";
+import { AdminDashboard } from "./components/screens/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +20,10 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/role-selection" element={<RoleSelectionScreen />} />
+          <Route path="/volunteer" element={<VolunteerDashboard />} />
+          <Route path="/official" element={<HealthOfficialDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -64,6 +64,55 @@ const learningContent: LearningContent[] = [
     type: "video",
     duration: "12 min",
     downloadable: true
+  },
+  {
+    id: "6",
+    title: "Cholera Prevention Tips",
+    description: "Specific hygiene measures to prevent cholera outbreaks in communities.",
+    category: "prevention",
+    language: "Hindi / English",
+    type: "infographic",
+    downloadable: true
+  },
+  {
+    id: "7",
+    title: "Typhoid Awareness",
+    description: "Understanding typhoid symptoms and prevention through proper food hygiene.",
+    category: "awareness",
+    language: "English / Local",
+    type: "video",
+    duration: "6 min",
+    downloadable: true
+  },
+  {
+    id: "8",
+    title: "Water Quality Testing",
+    description: "Simple methods to test water quality at home using basic indicators.",
+    category: "hygiene",
+    language: "English / Hindi",
+    type: "article",
+    duration: "4 min read",
+    downloadable: false
+  },
+  {
+    id: "9",
+    title: "Hepatitis A Prevention",
+    description: "Vaccination and hygiene practices to prevent Hepatitis A transmission.",
+    category: "prevention",
+    language: "English / Hindi",
+    type: "video",
+    duration: "7 min",
+    downloadable: true
+  },
+  {
+    id: "10",
+    title: "Diarrhea Management",
+    description: "Oral rehydration therapy and home care for diarrhea patients.",
+    category: "treatment",
+    language: "Local Dialect",
+    type: "audio",
+    duration: "10 min",
+    downloadable: true
   }
 ];
 
